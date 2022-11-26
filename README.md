@@ -7,5 +7,5 @@ author Dr.Best
 Merlin Music Player
 Merlin Music Player and iDream
 Manage your music files in a database, play it with Merlin Music Player.
-http://www.dreamboxupdate.com/preview/plugin_merlinmusicplayer.jpg	    
+<img src="http://www.dreamboxupdate.com/preview/plugin_merlinmusicplayer.jpg">
 
