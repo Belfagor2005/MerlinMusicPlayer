@@ -1,0 +1,18 @@
+	<!-- [081] MerlinMusicPlayer 081/6 -->
+	<screen name="SelectPath" position="0,0" size="1920,1080" flags="wfNoBorder" backgroundColor="#FF000000" title="Select Path" >
+                <eLabel text="MMP  Path Select" position="20,10" size="1200,110" font="LCD;100" foregroundColor="yellow" backgroundColor="#00000000" transparent="1" zPosition="1" />
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/mplist.jpg" position="0,0" size="1920,1080" transparent="0" zPosition="-3" />
+		<!--Time -->
+		<widget source="global.CurrentTime" render="Label" position="1600,60" size="300,110" font="Regular;50" halign="right" foregroundColor="#606060" backgroundColor="#000000" noWrap="1" transparent="1" zPosition="2" >
+			<convert type="ClockToText">Format:%-H:%M:%S</convert>
+		</widget>
+		<eLabel position="20,135" size="1470,3" backgroundColor="#001b3c85" />
+		<widget name="filelist" position="20,155" size="1450,750" itemHeight="50" foregroundColor="#d0d0d0" backgroundColor="#20000000" transparent="1" backgroundColorSelected="#001b3c85" 
+			scrollbarSliderBorderWidth="1" scrollbarWidth="3" scrollbarSliderForegroundColor="#007fcfff" scrollbarSliderBorderColor="#202020" scrollbarMode="showOnDemand" zPosition="2"/>
+		<eLabel position="20,920" size="1470,3" backgroundColor="#001b3c85" />
+		<ePixmap position="30,960" size="80,40" pixmap="skin_default/buttons/red.png" alphatest="blend" zPosition="1" />
+		<ePixmap position="30,1010" size="80,40" pixmap="skin_default/buttons/green.png" alphatest="blend" zPosition="1" />
+                <eLabel text="Cancel" position="130,960" size="200,40" font="Regular;32" foregroundColor="white" backgroundColor="#000000" transparent="1" zPosition="1" />
+                <eLabel text="Save"   position="130,1010" size="200,40" font="Regular;32" foregroundColor="white" backgroundColor="#000000" transparent="1" zPosition="1" />
+		<widget name="target" position="250,1180" size="1400,40" verticalAlignment="center" font="Regular;32" foregroundColor="#007fcfff" backgroundColor="#000000" transparent="1" />
+	</screen>

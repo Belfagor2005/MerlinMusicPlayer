@@ -1,0 +1,11 @@
+Package: enigma2-plugin-extensions-merlinmusicplayer
+Version: 7.0
+Section: base
+Priority: optional
+Architecture: all
+Maintainer: lululla
+Description: Merlin Music Player and iDream
+Source: /Dr.Best
+Homepage: http://www.dreamboxupdate.com/
+OE: 2.0 - 2.2 - 2.5 -2.6
+License: *

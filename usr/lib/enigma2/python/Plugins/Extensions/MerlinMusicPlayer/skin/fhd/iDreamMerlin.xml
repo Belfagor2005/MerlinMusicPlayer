@@ -1,0 +1,22 @@
+	<!-- [081] MerlinMusicPlayer 081/3 -->
+	<screen name="iDreamMerlin" position="0,0" size="1920,1080" flags="wfNoBorder" backgroundColor="#00000000" title="iDream">
+		<widget name="headertext" position="20,10" size="1200,110" font="LCD;100" foregroundColor="yellow" backgroundColor="#00000000" transparent="1" zPosition="1" />
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/mplist.jpg" position="0,0" size="1920,1080" transparent="0" zPosition="-3" />
+		<!--Time -->
+		<widget source="global.CurrentTime" render="Label" position="1600,60" size="300,110" font="Regular;50" halign="right" foregroundColor="#606060" backgroundColor="#000000" noWrap="1" transparent="1" zPosition="2" >
+			<convert type="ClockToText">Format:%-H:%M:%S</convert>
+		</widget>
+		<eLabel position="20,135" size="1470,3" backgroundColor="#001b3c85" />
+		<widget name="list" position="20,190" size="1450,675" font="Regular;24" foregroundColor="#d0d0d0" backgroundColor="#20000000" transparent="1" backgroundColorSelected="#001b3c85" 
+			scrollbarSliderBorderWidth="1" scrollbarWidth="3" scrollbarSliderForegroundColor="#007fcfff" scrollbarSliderBorderColor="#202020" scrollbarMode="showOnDemand" zPosition="2"/>
+		<eLabel position="20,910" size="1470,3" backgroundColor="#001b3c85" />
+		<ePixmap pixmap="skin_default/buttons/red.png"    position="30,950"   size="30,30"  zPosition="1" alphatest="blend"/>
+		<widget  source="key_red" render="Label"    position="80,945"   size="300,40" font="Regular;30" halign="left" valign="center" foregroundColor="white" backgroundColor="black" transparent="1" zPosition="2" />
+		<ePixmap pixmap="skin_default/buttons/green.png"  position="30,1020"  size="30,30"  zPosition="1" alphatest="blend"/>
+		<widget  source="key_green" render="Label"  position="80,1015"  size="300,40" font="Regular;30" halign="left" valign="center" foregroundColor="white" backgroundColor="black" transparent="1" zPosition="2" />
+		<ePixmap pixmap="skin_default/buttons/yellow.png" position="550,950"  size="30,30"  zPosition="1" alphatest="blend"/>
+		<widget  source="key_yellow" render="Label" position="600,945"  size="300,40" font="Regular;30" halign="left" valign="center" foregroundColor="white" backgroundColor="black" transparent="1" zPosition="2" />
+		<ePixmap pixmap="skin_default/buttons/blue.png"   position="550,1020" size="30,30"  zPosition="1" alphatest="blend"/>
+		<widget  source="key_blue" render="Label"   position="600,1015" size="300,40" font="Regular;30" halign="left" valign="center" foregroundColor="white" backgroundColor="black" transparent="1" zPosition="2" />
+		<ePixmap position="1800,955"  size="80,40" pixmap="skin_default/buttons/key_menu.png" alphatest="blend" zPosition="1" />
+	</screen>
