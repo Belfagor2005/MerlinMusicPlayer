@@ -28,12 +28,18 @@ from Plugins.Plugin import PluginDescriptor
 from Screens.Screen import Screen
 from Components.ActionMap import ActionMap, NumberActionMap
 from Components.Label import Label
-from enigma import RT_VALIGN_CENTER, RT_HALIGN_LEFT, RT_HALIGN_RIGHT, RT_HALIGN_CENTER, gFont, eListbox, ePoint, eListboxPythonMultiContent
+from enigma import RT_VALIGN_CENTER, RT_HALIGN_LEFT
+from enigma import RT_HALIGN_RIGHT, RT_HALIGN_CENTER
+from enigma import gFont
+from enigma import eListbox
+from enigma import eListboxPythonMultiContent
 from Components.FileList import FileList
 from enigma import eServiceReference, eTimer
-from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir, walk as os_walk, access as os_access, W_OK as os_W_OK
+from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir
+from os import walk as os_walk, access as os_access, W_OK as os_W_OK
 from Components.ProgressBar import ProgressBar
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
+from twisted.internet import defer
 from twisted.web import client
 from twisted.web.client import HTTPClientFactory, downloadPage
 from enigma import getDesktop
@@ -69,9 +75,10 @@ from time import time
 from random import shuffle, randrange
 import re
 import skin
-from Components.config import config, ConfigSubsection, ConfigDirectory, ConfigYesNo, ConfigInteger, getConfigListEntry, configfile
+from Components.config import config, ConfigSubsection, ConfigDirectory
+from Components.config import ConfigYesNo, ConfigInteger
+from Components.config import getConfigListEntry, configfile
 from Components.ConfigList import ConfigListScreen
-
 from Components.SystemInfo import SystemInfo
 from enigma import eServiceCenter, getBestPlayableServiceReference
 from Components.VideoWindow import VideoWindow
