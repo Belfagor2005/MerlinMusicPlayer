@@ -9,3 +9,7 @@ Merlin Music Player and iDream
 Manage your music files in a database, play it with Merlin Music Player.
 <img src="http://www.dreamboxupdate.com/preview/plugin_merlinmusicplayer.jpg">
 
+<img src="https://github.com/Belfagor2005/MerlinMusicPlayer/blob/main/screenshot/playlist.jpg">
+<img src="https://github.com/Belfagor2005/MerlinMusicPlayer/blob/main/screenshot/songlist.jpg">
+<img src="https://github.com/Belfagor2005/MerlinMusicPlayer/blob/main/screenshot/player.jpg">
+<img src="https://github.com/Belfagor2005/MerlinMusicPlayer/blob/main/screenshot/setup.jpg">
