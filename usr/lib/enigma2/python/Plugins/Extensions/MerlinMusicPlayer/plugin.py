@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: latin-1 -*-
+
 #  Merlin Music Player E2
 #
 #  $Id$
@@ -24,6 +27,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 from . import _
+from . import html_conv
 from Plugins.Plugin import PluginDescriptor
 from Screens.Screen import Screen
 from Components.ActionMap import ActionMap, NumberActionMap
@@ -52,7 +56,8 @@ from six.moves.urllib.parse import quote, urlparse, urlunparse
 from Components.ScrollLabel import ScrollLabel
 from Components.AVSwitch import AVSwitch
 from Tools.Directories import fileExists, resolveFilename
-from Tools.Directories import SCOPE_PLUGINS, SCOPE_CURRENT_SKIN
+from Tools.Directories import SCOPE_CURRENT_SKIN
+from Tools.Directories import SCOPE_PLUGINS
 from Tools.LoadPixmap import LoadPixmap
 from Components.Pixmap import Pixmap, MultiPixmap
 from Components.ServicePosition import ServicePositionGauge
@@ -232,7 +237,7 @@ class PathToDatabase(Thread):
 
                                 # 4. Songs
                                 try:
-                                    cursor.execute("INSERT INTO Songs (filename,title,artist_id,album_id,genre_id,tracknumber, bitrate, length, track, date) VALUES(?,?,?,?,?,?,?,?,?,?);", (os_path.join(root, filename), title, artistID, albumID, genreID, tracknr, bitrate, length, track, date))
+                                    cursor.execute("INSERT INTO Songs (filename, title, artist_id, album_id, genre_id, tracknumber, bitrate, length, track, date) VALUES(?,?,?,?,?,?,?,?,?,?);", (os_path.join(root, filename), title, artistID, albumID, genreID, tracknr, bitrate, length, track, date))
                                     self.__messages.push((THREAD_WORKING, _("%s\n added to database") % os_path.join(root, filename)))
                                     mp.send(0)
                                     counter += 1
@@ -376,7 +381,7 @@ class CacheList:
         self.headertext = headertext
         self.methodarguments = methodarguments
 
-
+      
 class Item:
     def __init__(self, text="", mode=0, id=-1, navigator=False, artistID=0, albumID=0, title="", artist="", filename="", bitrate=None, length="", genre="", track="", date="", album="", playlistID=0, genreID=0, songID=0, join=True, PTS=None):
         self.text = text
@@ -1325,7 +1330,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
                 audio = None
         elif self.currentFilename.lower().endswith(".m4a"):
             try:
-                # audio = MP4(self.currentFilename)
+                # audio = MP4(self.currentFilename) #dreambox
                 audio = EasyMP4(self.currentFilename)
                 audiotype = 3
             except:
@@ -1689,10 +1694,12 @@ class MerlinMusicPlayerLyrics(Screen):
         try:
             try:
                 audio = ID3(self.currentSong.filename)
+                print('audio ID3 ', audio)
             except:
                 audio = None
             text = getEncodedString(self.getLyricsFromID3Tag(audio))  # .replace("\r\n", "\n")
             # text = text.replace("\r", "\n")
+            print('audio text FromID3Tag ', text)
             self["lyric_text"].setText(text)
         except Exception as e:
             print(str(e))
@@ -1701,11 +1708,13 @@ class MerlinMusicPlayerLyrics(Screen):
         if tag:
             for frame in list(tag.values()):
                 if frame.FrameID == "USLT":
+                    print('type tag USLT')
                     return frame.text
         url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=%s&song=%s" % (quote(self.currentSong.artist), quote(self.currentSong.title))
-        print('url sendurlcommand = ', url)
-        print('type url = ', type(url))
-
+        # url1 = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" + quote(self.currentSong.artist)
+        # url = url1 + '&song=' + quote(self.currentSong.title)
+        print('url final sendurlcommand = ', url)
+        # print('type url = ', type(url))
         import requests
         from requests.adapters import HTTPAdapter
         adapter = HTTPAdapter()
@@ -1718,7 +1727,6 @@ class MerlinMusicPlayerLyrics(Screen):
             r.raise_for_status()
             if r.status_code == requests.codes.ok:
                 try:
-
                     response = responseUrl(url)
                     print('url response = ', response)
                     self.gotLyrics(response)
@@ -1742,6 +1750,7 @@ class MerlinMusicPlayerLyrics(Screen):
         lyrictext = ""
         lyrictext = root.findtext("{http://api.chartlyrics.com/}Lyric").encode("utf-8", 'ignore')
         lyrictext = repr(lyrictext)[2:-1]
+        lyrictext = html_conv.html_unescape(lyrictext)
         print('lyrictext = ', lyrictext)
 
         if not lyrictext:

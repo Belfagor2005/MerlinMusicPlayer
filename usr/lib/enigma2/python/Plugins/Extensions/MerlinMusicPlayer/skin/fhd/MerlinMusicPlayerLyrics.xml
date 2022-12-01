@@ -7,9 +7,11 @@
 			<convert type="ClockToText">Format:%-H:%M:%S</convert>
 		</widget>
 		<eLabel position="20,135" size="1470,3" backgroundColor="#001b3c85" />
+		<!--
 		<widget name="output" position="20,160" size="1450,250" itemHeight="50" foregroundColor="#d0d0d0" backgroundColor="#20000000" transparent="1" backgroundColorSelected="#001b3c85" scrollbarSliderBorderWidth="1" scrollbarWidth="3" scrollbarSliderForegroundColor="#007fcfff" scrollbarSliderBorderColor="#202020" scrollbarMode="showOnDemand" zPosition="2" />
-		<widget name="resulttext" position="20,430" zPosition="1" size="1200,40" font="Regular;34" halign="center" transparent="1" foregroundColor="#007fcfff" backgroundColor="#00000000" />
-		<widget name="lyric_text" position="20,500" zPosition="2" size="1200,400" font="Regular;28" transparent="1" foregroundColor="#ffffff" backgroundColor="#00000000" />
+		-->
+		<widget name="resulttext" position="20,165" zPosition="1" size="1200,40" font="Regular;34" halign="center" transparent="1" foregroundColor="#007fcfff" backgroundColor="#00000000" />
+		<widget name="lyric_text" position="20,215" zPosition="2" size="1200,685" font="Regular;28" transparent="1" foregroundColor="#ffffff" backgroundColor="#00000000" />
 		<eLabel position="20,920" size="1470,3" backgroundColor="#001b3c85" />
 		<ePixmap position="31,970" size="500,233" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/mplogo.png" alphatest="blend" zPosition="1" />
 	</screen>

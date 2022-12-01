@@ -8,13 +8,13 @@
 		</widget>
 		<!-- ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/overlay.png" position="0,0" size="1920,1080" transparent="1" alphatest="blend" /-->
 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/overlay2.png" position="0,780" size="1920,300" transparent="0" alphatest="blend" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/cd.png"                         position="10,796" size="450,294" zPosition="1" transparent="1" alphatest="blend" />
-		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/cover.png"                      position="5,791"  size="333,294" zPosition="3" transparent="1" alphatest="blend" />
-		<widget name="coverArt" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/no_coverArt.png" position="53,803" size="267,267" zPosition="2" transparent="1" alphatest="blend" />
- 		<ePixmap                 pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr.png" alphatest="blend"                          position="570,809" size="245,60" transparent="1" zPosition="4"/>
-		<widget name="dvrStatus" pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_pl.png,/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_pau.png" alphatest="blend"      position="570,809" size="245,60" transparent="1" zPosition="5"/>
-		<widget name="repeat"    pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_rep1.png,/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_rep2.png" alphatest="blend"   position="475,792" size="95,95"  transparent="1" zPosition="5"/>
-		<widget name="shuffle"   pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_shuf1.png,/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_shuf2.png" alphatest="blend" position="821,792" size="95,95"  transparent="1" zPosition="4"/>
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/cd.png" position="10,796" size="450,294" zPosition="1" transparent="1" alphatest="blend" />
+		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/cover.png" position="5,791"  size="333,294" zPosition="3" transparent="1" alphatest="blend" />
+		<widget name="coverArt"	 pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/no_coverArt.png" position="53,803" size="267,267" zPosition="2" transparent="1" alphatest="blend" />
+ 		<ePixmap pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr.png" alphatest="blend" position="570,809" size="245,60" transparent="1" zPosition="4"/>
+		<widget name="dvrStatus" pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_pl.png,/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_pau.png" alphatest="blend" position="570,809" size="245,60" transparent="1" zPosition="5"/>
+		<widget name="repeat" pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_rep1.png,/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_rep2.png" alphatest="blend" position="475,792" size="95,95"  transparent="1" zPosition="5"/>
+		<widget name="shuffle" pixmaps="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_shuf1.png,/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/dvr_shuf2.png" alphatest="blend" position="821,792" size="95,95"  transparent="1" zPosition="4"/>
 		<widget source="session.CurrentService" render="Label" position="1500,792" size="400,73" font="Regular;70" halign="right" foregroundColor="#007fcfff" backgroundColor="#000000" transparent="1" zPosition="3" >
 			<convert type="ServicePosition">Position</convert>
 		</widget>
