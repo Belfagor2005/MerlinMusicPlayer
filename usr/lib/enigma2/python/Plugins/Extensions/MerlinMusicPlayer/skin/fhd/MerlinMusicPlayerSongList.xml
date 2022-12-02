@@ -7,7 +7,7 @@
 			<convert type="ClockToText">Format:%-H:%M:%S</convert>
 		</widget>
 		<eLabel position="20,135" size="1470,3" backgroundColor="#001b3c85" />
-		<widget name="list" position="20,165" size="1450,720" itemHeight="45" foregroundColor="#d0d0d0" backgroundColor="#20000000" transparent="1" backgroundColorSelected="#001b3c85" scrollbarSliderBorderWidth="1" scrollbarWidth="3" scrollbarSliderForegroundColor="#007fcfff" scrollbarSliderBorderColor="#202020" scrollbarMode="showOnDemand" zPosition="2" />
-		<eLabel position="20,920" size="1470,3" backgroundColor="#001b3c85" />
+		<widget name="list" position="20,155" size="1470,720" itemHeight="45" foregroundColor="#d0d0d0" backgroundColor="#20000000" transparent="1" backgroundColorSelected="#001b3c85" scrollbarSliderBorderWidth="1" scrollbarWidth="3" scrollbarSliderForegroundColor="#007fcfff" scrollbarSliderBorderColor="#202020" scrollbarMode="showOnDemand" zPosition="2" />
+		<eLabel position="20,910" size="1470,3" backgroundColor="#001b3c85" />
 		<ePixmap position="32,970" size="500,231" pixmap="/usr/lib/enigma2/python/Plugins/Extensions/MerlinMusicPlayer/images/mplogo.png" alphatest="blend" zPosition="1" />
 	</screen>
