@@ -107,7 +107,7 @@ config.plugins.merlinmusicplayer = ConfigSubsection()
 config.plugins.merlinmusicplayer.startlastsonglist = ConfigYesNo(default=True)
 config.plugins.merlinmusicplayer.lastsonglistindex = ConfigInteger(-1)
 config.plugins.merlinmusicplayer.databasepath = ConfigDirectory(default="/media/hdd/")
-# config.plugins.merlinmusicplayer.usegoogleimage = ConfigYesNo(default=True)
+config.plugins.merlinmusicplayer.usegoogleimage = ConfigYesNo(default=True)
 config.plugins.merlinmusicplayer.googleimagepath = ConfigDirectory(default="/media/hdd/")
 config.plugins.merlinmusicplayer.usescreensaver = ConfigYesNo(default=True)
 config.plugins.merlinmusicplayer.screensaverwait = ConfigInteger(1, limits=(1, 60))
@@ -329,6 +329,10 @@ class myHTTPClientFactory(HTTPClientFactory):
 
 
 def sendUrlCommand(url, contextFactory=None, timeout=60, *args, **kwargs):
+    # edit
+    if six.PY3:
+        url = url.encode()
+    # end edit
     if hasattr(client, '_parse'):
         scheme, host, port, path = client._parse(url)
     else:
@@ -343,28 +347,43 @@ def sendUrlCommand(url, contextFactory=None, timeout=60, *args, **kwargs):
         host = uri.host
         port = uri.port
         path = uri.path
+
     factory = myHTTPClientFactory(url, *args, **kwargs)
     reactor.connectTCP(host, port, factory, timeout=timeout)
     return factory.deferred
 
 
+# def responseUrl(url):
+    # import sys
+    # if sys.version_info.major == 3:
+        # import urllib.request as urllib2
+    # elif sys.version_info.major == 2:
+        # import urllib2
+    # req = urllib2.Request(url)
+    # req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
+    # r = urllib2.urlopen(req, None, 15)
+    # response = r.read()
+    # r.close()
+    # if str(type(response)).find('bytes') != -1:
+        # try:
+            # response = response.decode("utf-8")
+        # except Exception as e:
+            # print('error: ', str(e))
+    # return response
+
+
 def responseUrl(url):
-    import sys
-    if sys.version_info.major == 3:
-        import urllib.request as urllib2
-    elif sys.version_info.major == 2:
-        import urllib2
-    req = urllib2.Request(url)
-    req.add_header('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')
-    r = urllib2.urlopen(req, None, 15)
-    response = r.read()
-    r.close()
-    if str(type(response)).find('bytes') != -1:
-        try:
-            response = response.decode("utf-8")
-        except Exception as e:
-            print('error: ', str(e))
-    return response
+    try:
+        from urllib2 import Request, urlopen
+    except:
+        from urllib.request import urlopen, Request
+    agents = {'User-Agent': 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30)'}
+    request = Request(url, headers=agents)
+    if six.PY2:
+        output = urlopen(request, timeout=10).read()
+    else:
+        output = urlopen(request, timeout=10).read().decode('utf-8')
+    return output
 
 
 class MethodArguments:
@@ -381,7 +400,7 @@ class CacheList:
         self.headertext = headertext
         self.methodarguments = methodarguments
 
-      
+
 class Item:
     def __init__(self, text="", mode=0, id=-1, navigator=False, artistID=0, albumID=0, title="", artist="", filename="", bitrate=None, length="", genre="", track="", date="", album="", playlistID=0, genreID=0, songID=0, join=True, PTS=None):
         self.text = text
@@ -1360,10 +1379,10 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
             audio = None
         if not hasCover:
             if not self["coverArt"].updateCoverArt(self.currentFilename):
-                # if config.plugins.merlinmusicplayer.usegoogleimage.value:
-                #   self.getGoogleCover(artist, album, title)
-                # else:
-                self["coverArt"].showDefaultCover()
+                if config.plugins.merlinmusicplayer.usegoogleimage.value:
+                  self.getGoogleCover(artist, album, title)
+                else:
+                    self["coverArt"].showDefaultCover()
                 if self.screenSaverScreen:
                     self.screenSaverScreen.updateCover(modus=1)
             else:
@@ -1380,16 +1399,35 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
 
     def getGoogleCover(self, artist, album, title, imagesize="&imgsz=medium"):
         if (artist == "" or artist == "n/a"):
-            self["coverArt"].showDefaultCover()
-        elif (album == "" or album.startswith("n/a")):
-            if (title == "" or title == "n/a"):
+            try:
+                url = 'https://www.google.com/search?q=%s+%s+-youtube&tbm=isch&source=lnt&tbs=isz:ex,iszw:500,iszh:500' % (quote(album), quote(artist))
+                getPage(url, timeout=10, agent='Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56 Safari/537.17').addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
+            except:
                 self["coverArt"].showDefaultCover()
-            else:
+            # self["coverArt"].showDefaultCover()
+        elif (album == "" or album.startswith("n/a")):
+            try:
                 url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0" + imagesize + "&q=%s+%s" % (quote(title), quote(artist))
-                sendUrlCommand(url, None, 10).addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
+                getPage(url, timeout=10, agent='Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56 Safari/537.17').addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
+            except:
+                self["coverArt"].showDefaultCover()
+            # if (title == "" or title == "n/a"):
+                # self["coverArt"].showDefaultCover()
+            # else:
+                # url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0" + imagesize + "&q=%s+%s" % (quote(title), quote(artist))
+                # if six.PY3:
+                    # url = url.encode()
+                # sendUrlCommand(url, None, 10).addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
         else:
-            url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0" + imagesize + "&q=%s+%s" % (quote(album), quote(artist))
-            sendUrlCommand(url, None, 10).addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
+            try:
+                url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0" + imagesize + "&q=%s+%s" % (quote(album), quote(artist))
+                getPage(url, timeout=10, agent='Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.56 Safari/537.17').addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
+            except:
+                self["coverArt"].showDefaultCover()
+            # url = "http://ajax.googleapis.com/ajax/services/search/images?v=1.0" + imagesize + "&q=%s+%s" % (quote(album), quote(artist))
+            # if six.PY3:
+                # url = url.encode()
+            # sendUrlCommand(url, None, 10).addCallback(boundFunction(self.googleImageCallback, artist, album, title, imagesize)).addErrback(boundFunction(self.coverDownloadFailed, [], album, title))
 
     def googleImageCallback(self, artist, album, title, imgsize, result):
         urls = re.findall("unescapedUrl\":\"(.*?)\",\"url\":\"", result)
@@ -1417,6 +1455,9 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
             else:
                 urls.pop(0)
                 print("[MerlinMusicPlayer] downloading cover from %s " % url)
+                # edit
+                if six.PY3:
+                    url = url.encode()
                 downloadPage(six.ensure_binary(url), filename).addCallback(boundFunction(self.coverDownloadFinished, filename)).addErrback(boundFunction(self.coverDownloadFailed, urls, album, title))
 
     def coverDownloadFailed(self, urls, album, title, result):
@@ -1535,7 +1576,9 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
             else:
                 index = self.currentIndex + 1
         if self.iDreamMode or self.songList[index][0].PTS is not None:
-            text = "%s - %s" % (self.songList[index][0].title, self.songList[index][0])
+            # text = "%s - %s" % (self.songList[index][0].title, self.songList[index][0])
+            text = "%s" % (self.songList[index][0].title)
+            # text = self.songList[index][0].filename
             # print('1 string ', type(text))
         else:
             if self.songList[index][0].filename.lower().startswith("http://"):
@@ -1671,8 +1714,8 @@ class MerlinMusicPlayerLyrics(Screen):
             self.skin = f.read()
         self["headertext"] = Label(_("Merlin Music Player Lyrics"))
         # leoslyrics does not work anymore
-        # self["resulttext"] = Label(_("Getting lyrics from api.leoslyrics.com..."))
-        self["resulttext"] = Label()
+        self["resulttext"] = Label(_("Getting lyrics from api.leoslyrics.com..."))
+        # self["resulttext"] = Label()
         self["lyric_text"] = ScrollLabel()
         self["actions"] = ActionMap(["WizardActions", "DirectionActions"],
                                     {
@@ -1701,6 +1744,7 @@ class MerlinMusicPlayerLyrics(Screen):
             # text = text.replace("\r", "\n")
             print('audio text FromID3Tag ', text)
             self["lyric_text"].setText(text)
+            self["resulttext"].setText('')
         except Exception as e:
             print(str(e))
 
@@ -3145,9 +3189,9 @@ class MerlinMusicPlayerSetup(Screen, ConfigListScreen):
             self.list.append(self.database)
         else:
             self.database = None
-        # self.list.append(getConfigListEntry(_("Use google-images for cover art"), config.plugins.merlinmusicplayer.usegoogleimage))
-        # self.googleimage = getConfigListEntry(_("Google image path"), config.plugins.merlinmusicplayer.googleimagepath)
-        # self.list.append(self.googleimage)
+        self.list.append(getConfigListEntry(_("Use google-images for cover art"), config.plugins.merlinmusicplayer.usegoogleimage))
+        self.googleimage = getConfigListEntry(_("Google image path"), config.plugins.merlinmusicplayer.googleimagepath)
+        self.list.append(self.googleimage)
         self.list.append(getConfigListEntry(_("Activate screensaver"), config.plugins.merlinmusicplayer.usescreensaver))
         self.list.append(getConfigListEntry(_("Wait for screensaver (in min)"), config.plugins.merlinmusicplayer.screensaverwait))
         self.list.append(getConfigListEntry(_("Remember last path of filebrowser"), config.plugins.merlinmusicplayer.rememberlastfilebrowserpath))
