@@ -1771,7 +1771,7 @@ class MerlinMusicPlayerLyrics(Screen):
             r.raise_for_status()
             if r.status_code == requests.codes.ok:
                 try:
-                    response = responseUrl(url)
+                    response = responseUrl(str(url))
                     print('url response = ', response)
                     self.gotLyrics(response)
                 except:
