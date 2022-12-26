@@ -28,72 +28,73 @@ from __future__ import print_function
 from __future__ import absolute_import
 from . import _
 from . import html_conv
-from Plugins.Plugin import PluginDescriptor
-from Screens.Screen import Screen
-from Components.ActionMap import ActionMap, NumberActionMap
-from Components.Label import Label
-from enigma import RT_VALIGN_CENTER, RT_HALIGN_LEFT
-from enigma import RT_HALIGN_RIGHT, RT_HALIGN_CENTER
-from enigma import gFont
-from enigma import eListbox
-from enigma import eListboxPythonMultiContent
-from Components.FileList import FileList
-from enigma import eServiceReference, eTimer
-from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir
-from os import walk as os_walk, access as os_access, W_OK as os_W_OK
-from Components.ProgressBar import ProgressBar
-from twisted.internet import reactor
-from twisted.internet import defer
-from twisted.web import client
-from twisted.web.client import HTTPClientFactory, downloadPage
-from enigma import getDesktop
-from Screens.MessageBox import MessageBox
-from Screens.InfoBar import InfoBar
-from Components.GUIComponent import GUIComponent
-from enigma import ePicLoad
-from xml.etree.cElementTree import fromstring as cet_fromstring
-from six.moves.urllib.parse import quote, urlparse, urlunparse
-from Components.ScrollLabel import ScrollLabel
 from Components.AVSwitch import AVSwitch
-from Tools.Directories import fileExists, resolveFilename
-from Tools.Directories import SCOPE_CURRENT_SKIN
-from Tools.Directories import SCOPE_PLUGINS
-from Tools.LoadPixmap import LoadPixmap
-from Components.Pixmap import Pixmap, MultiPixmap
-from Components.ServicePosition import ServicePositionGauge
-from Screens.InfoBarGenerics import InfoBarSeek, InfoBarNotifications
-from Components.ServiceEventTracker import ServiceEventTracker, InfoBarBase
-from enigma import iPlayableService, iServiceInformation
-from Components.Sources.StaticText import StaticText
-from Screens.ChoiceBox import ChoiceBox
-from Screens.VirtualKeyBoard import VirtualKeyBoard
-from Tools.BoundFunction import boundFunction
-from sqlite3 import dbapi2 as sqlite
-from mutagen.flac import FLAC
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, USLT
-from mutagen.easyid3 import EasyID3
-from mutagen.easymp4 import EasyMP4
-from mutagen.oggvorbis import OggVorbis
-from datetime import timedelta as datetime_timedelta
-from time import time
-from random import shuffle, randrange
-import re
-import skin
-from Components.config import config, ConfigSubsection, ConfigDirectory
-from Components.config import ConfigYesNo, ConfigInteger
-from Components.config import getConfigListEntry, configfile
+from Components.ActionMap import ActionMap, NumberActionMap
 from Components.ConfigList import ConfigListScreen
+from Components.FileList import FileList
+from Components.GUIComponent import GUIComponent
+from Components.Label import Label
+from Components.Pixmap import Pixmap, MultiPixmap
+from Components.ProgressBar import ProgressBar
+from Components.ScrollLabel import ScrollLabel
+from Components.ServiceEventTracker import ServiceEventTracker, InfoBarBase
+from Components.ServicePosition import ServicePositionGauge
+from Components.Sources.StaticText import StaticText
 from Components.SystemInfo import SystemInfo
-from enigma import eServiceCenter, getBestPlayableServiceReference
 from Components.VideoWindow import VideoWindow
-from ServiceReference import ServiceReference
+from Components.config import ConfigYesNo, ConfigInteger
+from Components.config import config, ConfigSubsection, ConfigDirectory
+from Components.config import getConfigListEntry, configfile
+from Plugins.Plugin import PluginDescriptor
+from Screens.ChoiceBox import ChoiceBox
 from Screens.EpgSelection import EPGSelection
 from Screens.EventView import EventViewEPGSelect
-from enigma import ePoint, eEPGCache
+from Screens.InfoBar import InfoBar
+from Screens.InfoBarGenerics import InfoBarSeek, InfoBarNotifications
 from Screens.InfoBarGenerics import NumberZap
+from Screens.MessageBox import MessageBox
+from Screens.Screen import Screen
+from Screens.VirtualKeyBoard import VirtualKeyBoard
+from ServiceReference import ServiceReference
+from Tools.BoundFunction import boundFunction
+from Tools.Directories import SCOPE_CURRENT_SKIN
+from Tools.Directories import SCOPE_PLUGINS
+from Tools.Directories import fileExists, resolveFilename
+from Tools.LoadPixmap import LoadPixmap
+from datetime import timedelta as datetime_timedelta
+from enigma import RT_HALIGN_RIGHT, RT_HALIGN_CENTER
+from enigma import RT_VALIGN_CENTER, RT_HALIGN_LEFT
+from enigma import eListbox
+from enigma import eListboxPythonMultiContent
+from enigma import ePicLoad
+from enigma import ePoint
+from enigma import eEPGCache
 from enigma import ePythonMessagePump
+from enigma import eServiceCenter, getBestPlayableServiceReference
+from enigma import eServiceReference, eTimer
+from enigma import gFont
+from enigma import getDesktop
+from enigma import iPlayableService, iServiceInformation
+from mutagen.easyid3 import EasyID3
+from mutagen.easymp4 import EasyMP4
+from mutagen.flac import FLAC
+from mutagen.id3 import ID3, USLT
+from mutagen.mp3 import MP3
+from mutagen.oggvorbis import OggVorbis
+from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir
+from os import walk as os_walk, access as os_access, W_OK as os_W_OK
+from random import shuffle, randrange
+from six.moves.urllib.parse import quote, urlparse, urlunparse
+from sqlite3 import dbapi2 as sqlite
 from threading import Thread, Lock
+from time import time
+from twisted.internet import defer
+from twisted.internet import reactor
+from twisted.web import client
+from twisted.web.client import HTTPClientFactory, downloadPage
+from xml.etree.cElementTree import fromstring as cet_fromstring
+import re
+import skin
 import six
 try:
     from Plugins.SystemPlugins.PiPServiceRelation.plugin import getRelationDict, CONFIG_FILE
@@ -611,7 +612,14 @@ class MerlinMusicPlayerScreenSaver(Screen):
         self.coverMoveTimer.timeout.get().append(self.moveCoverArt)
         self.coverMoveTimer.start(1)
         self["display"] = Label()
+        self.onClose.append(self.__onClose)
+        self.session.nav.SleepTimer.on_state_change.append(self.sleepTimerEntryOnStateChange)
+    def sleepTimerEntryOnStateChange(self, timer):
+        if timer.state == TimerEntry.StateEnded:
+            self.close()
 
+    def __onClose(self):
+        self.session.nav.SleepTimer.on_state_change.remove(self.sleepTimerEntryOnStateChange)
     def updateDisplayText(self, text):
         self["display"].setText(text)
 
@@ -1735,18 +1743,15 @@ class MerlinMusicPlayerLyrics(Screen):
     def startRun(self):
         # get lyric-text from id3 tag
         try:
-            try:
-                audio = ID3(self.currentSong.filename)
-                print('audio ID3 ', audio)
-            except:
-                audio = None
-            text = getEncodedString(self.getLyricsFromID3Tag(audio))  # .replace("\r\n", "\n")
-            # text = text.replace("\r", "\n")
-            print('audio text FromID3Tag ', text)
-            self["lyric_text"].setText(text)
-            self["resulttext"].setText('')
-        except Exception as e:
-            print(str(e))
+            audio = ID3(self.currentSong.filename)
+            print('audio ID3 ', audio)
+        except:
+            audio = None
+        text = getEncodedString(self.getLyricsFromID3Tag(audio))  # .replace("\r\n", "\n")
+        # text = text.replace("\r", "\n")
+        print('audio text FromID3Tag ', text)
+        self["lyric_text"].setText(text)
+        self["resulttext"].setText('')
 
     def getLyricsFromID3Tag(self, tag):
         if tag:
