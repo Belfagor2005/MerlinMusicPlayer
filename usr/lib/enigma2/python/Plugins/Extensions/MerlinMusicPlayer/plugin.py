@@ -75,6 +75,7 @@ from enigma import eServiceReference, eTimer
 from enigma import gFont
 from enigma import getDesktop
 from enigma import iPlayableService, iServiceInformation
+from mutagen.aiff import AIFF
 from mutagen.easyid3 import EasyID3
 from mutagen.easymp4 import EasyMP4
 from mutagen.flac import FLAC
@@ -84,11 +85,11 @@ from mutagen.oggvorbis import OggVorbis
 from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir
 from os import walk as os_walk, access as os_access, W_OK as os_W_OK
 from random import shuffle, randrange
-from six.moves.urllib.parse import quote, urlparse, urlunparse
+from six.moves.urllib.parse import quote, urlparse  # , urlunparse
 from sqlite3 import dbapi2 as sqlite
 from threading import Thread, Lock
 from time import time
-from twisted.internet import defer
+# from twisted.internet import defer
 from twisted.internet import reactor
 from twisted.web import client
 from twisted.web.client import HTTPClientFactory, downloadPage
@@ -97,7 +98,7 @@ import re
 import skin
 import six
 try:
-    from Plugins.SystemPlugins.PiPServiceRelation.plugin import getRelationDict, CONFIG_FILE
+    from Plugins.SystemPlugins.PiPServiceRelation.plugin import getRelationDict  # , CONFIG_FILE
     plugin_PiPServiceRelation_installed = True
 except:
     plugin_PiPServiceRelation_installed = False
@@ -130,6 +131,12 @@ elif DESKTOP_WIDTH == 1024:
 else:
     skin_path = resolveFilename(SCOPE_PLUGINS, "Extensions/{}/skin/sd/".format('MerlinMusicPlayer'))
 
+no_coverArt = resolveFilename(SCOPE_PLUGINS, "Extensions/{}/images/no_coverArt.png".format('MerlinMusicPlayer'))
+
+
+def isValidAudio(filename):
+    return filename.lower().endswith((".mp3", ".flac", ".m4a", ".ogg", ".aif", ".aiff", ".wav", ".wma", ".au", ".mpc"))
+
 
 class ThreadQueue:
     def __init__(self):
@@ -149,7 +156,7 @@ class ThreadQueue:
         lock.release()
         return ret
 
-
+displayname = None
 THREAD_WORKING = 1
 THREAD_FINISHED = 2
 
@@ -412,6 +419,7 @@ class Item:
         self.title = title
         self.artist = artist
         self.filename = filename
+        self.isDVB = isDVB                  
         if bitrate is not None:
             if join:
                 self.bitrate = "%d Kbps" % bitrate
@@ -419,7 +427,8 @@ class Item:
                 self.bitrate = bitrate
         else:
             self.bitrate = ""
-        self.length = repr(length)[2:-1]
+        # self.length = repr(length)[2:-1]
+        self.length = length
         self.genre = genre
         if track is not None:
             self.track = _("Track %s") % track
@@ -465,23 +474,38 @@ def OpenDatabase():
     return connection
 
 
+# def getEncodedString(value):
+    # returnValue = ""
+    # if six.PY3:
+        # returnValue = value
+    # else:
+        # try:
+            # returnValue = value.encode("utf-8", 'ignore')
+        # except UnicodeDecodeError:
+            # try:
+                # returnValue = value.encode("iso8859-1", 'ignore')
+            # except UnicodeDecodeError:
+                # try:
+                    # returnValue = value.decode("cp1252").encode("utf-8")
+                # except UnicodeDecodeError:
+                    # returnValue = "n/a"
+    # return returnValue
 def getEncodedString(value):
     returnValue = ""
-    if six.PY3:
-        returnValue = value
-    else:
+    try:
+        returnValue = value.encode("utf-8", 'ignore')
+    except UnicodeDecodeError:
         try:
-            returnValue = value.encode("utf-8", 'ignore')
+            returnValue = value.encode("iso8859-1", 'ignore')
         except UnicodeDecodeError:
             try:
-                returnValue = value.encode("iso8859-1", 'ignore')
+                returnValue = value.decode("cp1252").encode("utf-8")
             except UnicodeDecodeError:
-                try:
-                    returnValue = value.decode("cp1252").encode("utf-8")
-                except UnicodeDecodeError:
-                    returnValue = "n/a"
+                    
+                returnValue = "n/a"
+                                          
+                                       
     return returnValue
-
 
 def getID3Tags(root, filename):
     audio = None
@@ -517,6 +541,11 @@ def getID3Tags(root, filename):
             audio = OggVorbis(os_path.join(root, filename))
         except:
             audio = None
+    elif filename.lower().endswith(".aif") or filename.lower().endswith(".aiff"):
+        try:
+            audio = AIFF(os_path.join(root,filename))
+        except:
+            audio = None
     else:
         isAudio = False
     if audio:
@@ -536,7 +565,7 @@ def getID3Tags(root, filename):
         date = getEncodedString(audio.get('date', ['n/a'])[0])
         try:
             length = str(datetime_timedelta(seconds=int(audio.info.length))).encode("utf-8", 'ignore')
-            length = repr(length)[2:-1]
+            # length = repr(length)[2:-1]
         except:
             length = -1
         if not isFlac:
@@ -2445,7 +2474,7 @@ class iDreamMerlin(Screen):
             return
         if sel.songID != 0:
             if self.player is not None:
-                self.player.doClose()
+                self.session.deleteDialog(self.player)
                 self.player = None
             self.startMerlinPlayerScreenTimer.stop()
             self.player = self.session.instantiateDialog(MerlinMusicPlayerScreen, self["list"].getList()[1:], self["list"].getCurrentIndex() - 1, True, self.currentService, self.serviceList)
@@ -2719,7 +2748,7 @@ class iDreamMerlin(Screen):
             cursor.close()
             connection.close()
             if self.player is not None:
-                self.player.doClose()
+                self.session.deleteDialog(self.player)
                 self.player = None
             self.startMerlinPlayerScreenTimer.stop()
             count = len(SongList)
@@ -2742,7 +2771,7 @@ class iDreamMerlin(Screen):
     def stopPlayingAndAppendFileToSongList(self):
         self.startMerlinPlayerScreenTimer.stop()
         if self.player is not None:
-            self.player.doClose()
+            self.session.deleteDialog(self.player)
             self.player = None
         self.appendFileToSongList()
         self.startMerlinPlayerScreenTimer.start(START_MERLIN_PLAYER_SCREEN_TIMER_VALUE)
@@ -2759,7 +2788,7 @@ class iDreamMerlin(Screen):
                 SongList.append((sel,))
             if not playerAvailable:
                 if self.player is not None:
-                    self.player.doClose()
+                    self.session.deleteDialog(self.player)
                     self.player = None
                 self.player = self.session.instantiateDialog(MerlinMusicPlayerScreen, SongList, 0, True, self.currentService, self.serviceList)
                 self.player.playSong(self.player.songList[self.player.currentIndex][0].filename)
@@ -2793,7 +2822,7 @@ class iDreamMerlin(Screen):
         self.startMerlinPlayerScreenTimer.stop()
         if self.player is not None:
             self.player.closePlayer()
-            self.player.doClose()
+            self.session.deleteDialog(self.player)
             self.player = None
         if self.serviceList is None:
             self.session.nav.playService(self.currentService, adjust=False)
@@ -2978,7 +3007,7 @@ class MerlinMediaPixmap(Pixmap):
                     noCoverFile = value
                     break
         if noCoverFile is None:
-            noCoverFile = resolveFilename(SCOPE_CURRENT_SKIN, "skin_default/no_coverArt.png")
+            noCoverFile = no_coverArt   # resolveFilename(SCOPE_SKIN_IMAGE, "skin_default/no_coverArt.png")
         self.noCoverPixmap = LoadPixmap(noCoverFile)
         return Pixmap.applySkin(self, desktop, screen)
 
@@ -2993,7 +3022,6 @@ class MerlinMediaPixmap(Pixmap):
             self.instance.setPixmap(ptr.__deref__())
 
     def updateCoverArt(self, path):
-        back = False
         while not path.endswith("/"):
             path = path[:-1]
         new_coverArtFileName = None
@@ -3001,15 +3029,32 @@ class MerlinMediaPixmap(Pixmap):
             if fileExists(path + filename):
                 new_coverArtFileName = path + filename
         if self.coverArtFileName != new_coverArtFileName:
+            self.coverArtFileName = new_coverArtFileName
             if new_coverArtFileName:
-                self.coverArtFileName = new_coverArtFileName
-                print("[MerlinMusicPlayer] using cover from %s " % self.coverArtFileName)
                 self.picload.startDecode(self.coverArtFileName)
-                back = True
-        else:
-            if new_coverArtFileName:
-                back = True
-        return back
+            else:
+                self.showDefaultCover()
+
+    # original
+    # def updateCoverArt(self, path):
+        # back = False
+        # while not path.endswith("/"):
+            # path = path[:-1]
+        # new_coverArtFileName = None
+        # for filename in self.coverFileNames:
+            # if fileExists(path + filename):
+                # new_coverArtFileName = path + filename
+        # if self.coverArtFileName != new_coverArtFileName:
+            # self.coverArtFileName = new_coverArtFileName
+            # if new_coverArtFileName:
+                # # self.coverArtFileName = new_coverArtFileName
+                # print("[MerlinMusicPlayer] using cover from %s " % self.coverArtFileName)
+                # self.picload.startDecode(self.coverArtFileName)
+                # back = True
+        # else:
+            # if new_coverArtFileName:
+                # back = True
+        # return back
 
     def showDefaultCover(self):
         self.coverArtFileName = ""
@@ -3024,6 +3069,12 @@ class MerlinMediaPixmap(Pixmap):
         self.coverArtFileName = "/tmp/.id3coverart"
         self.picload.startDecode(self.coverArtFileName)
 
+    # def coverlyrics(self):
+        # self.coverArtFileName = "/tmp/.onlinecover"
+        # self.picload.startDecode(self.coverArtFileName)
+
+    # def screensaver(self, path):
+        # self.picload.startDecode(path)
 
 class SelectPath(Screen):
     # skin = """<screen name="SelectPath" position="center,center" size="560,320" title="Select path">
@@ -3335,7 +3386,7 @@ class MerlinMusicPlayerFileList(Screen):
             cursor.close()
             connection.close()
             if self.player is not None:
-                self.player.doClose()
+                self.session.deleteDialog(self.player)
                 self.player = None
             self.startMerlinPlayerScreenTimer.stop()
             count = len(SongList)
@@ -3349,7 +3400,7 @@ class MerlinMusicPlayerFileList(Screen):
 
     def readCUE(self, filename):
         SongList = []
-        displayname = None
+        # displayname = None
         try:
             cuefile = open(filename, "r")
         except IOError:
@@ -3411,6 +3462,21 @@ class MerlinMusicPlayerFileList(Screen):
                     extinf = entry.split(',', 1)
                     if len(extinf) > 1:
                         displayname = extinf[1]
+                elif entry.startswith("http"):
+                    isDVB = False
+                    if displayname:
+                        text = displayname
+                        displayname = None
+                    else:
+                        text = entry
+                    t = os_path.splitext(os_path.basename(entry))[0]
+                    ref = eServiceReference(t)
+                    if ref.valid():
+                        if text == entry:
+                            info = serviceHandler.info(ref)
+                            text = info and info.getName(ref) or "."
+                        isDVB = True
+                    SongList.append((Item(text = text, filename = entry, isDVB = isDVB),))
                 elif entry[0] != "#":
                     if entry[0] == "/":
                         songfilename = entry
@@ -3427,7 +3493,7 @@ class MerlinMusicPlayerFileList(Screen):
 
     def readPLS(self, filename):
         SongList = []
-        displayname = None
+        # displayname = None
         try:
             plsfile = open(filename, "r")
         except IOError:
@@ -3453,10 +3519,10 @@ class MerlinMusicPlayerFileList(Screen):
         for root, subFolders, files in os_walk(self["list"].getCurrentDirectory()):
             files.sort()
             for filename in files:
-                if filename.lower().endswith(".mp3") or filename.lower().endswith(".flac") or filename.lower().endswith(".m4a") or filename.lower().endswith(".ogg"):
+                if isValidAudio(filename):
                     SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
         if self.player is not None:
-            self.player.doClose()
+            self.session.deleteDialog(self.player)
             self.player = None
         self.startMerlinPlayerScreenTimer.stop()
         count = len(SongList)
@@ -3486,13 +3552,13 @@ class MerlinMusicPlayerFileList(Screen):
                 files = os_listdir(self["list"].getCurrentDirectory())
                 files.sort()
                 for filename in files:
-                    if filename.lower().endswith(".mp3") or filename.lower().endswith(".flac") or filename.lower().endswith(".m4a") or filename.lower().endswith(".ogg"):
-                        SongList.append((Item(text=filename, filename=os_path.join(self["list"].getCurrentDirectory(), filename)),))
+                    if isValidAudio(filename):
+                        SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
                         if self["list"].getFilename() == filename:
                             foundIndex = index
                         index += 1
             if self.player is not None:
-                self.player.doClose()
+                self.session.deleteDialog(self.player)
                 self.player = None
             self.startMerlinPlayerScreenTimer.stop()
             count = len(SongList)
@@ -3511,7 +3577,7 @@ class MerlinMusicPlayerFileList(Screen):
         options = [(_("Configuration"), self.config), ]
         if not self["list"].canDescent():
             filename = self["list"].getFilename()
-            if filename.lower().endswith(".mp3") or filename.lower().endswith(".flac") or filename.lower().endswith(".m4a") or filename.lower().endswith(".ogg"):
+            if isValidAudio(filename):
                 options.extend(((_("Clear current songlist and play selected entry"), self.stopPlayingAndAppendFileToSongList), ))
                 options.extend(((_("Append file to current songlist"), self.appendFileToSongList), ))
                 if self.player is not None and self.player.songList:
@@ -3524,7 +3590,7 @@ class MerlinMusicPlayerFileList(Screen):
     def stopPlayingAndAppendFileToSongList(self):
         self.startMerlinPlayerScreenTimer.stop()
         if self.player is not None:
-            self.player.doClose()
+            self.session.deleteDialog(self.player)
             self.player = None
         self.appendFileToSongList()
         self.startMerlinPlayerScreenTimer.start(START_MERLIN_PLAYER_SCREEN_TIMER_VALUE)
@@ -3532,8 +3598,9 @@ class MerlinMusicPlayerFileList(Screen):
     def appendFileToSongList(self):
         playerAvailable = self.player is not None and self.player.songList
         filename = self["list"].getFilename()
-        if filename.lower().endswith(".mp3") or filename.lower().endswith(".flac") or filename.lower().endswith(".m4a") or filename.lower().endswith(".ogg"):
+        if isValidAudio(filename):
             SongList = []
+            SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
             a = Item(text=filename, filename=os_path.join(self["list"].getCurrentDirectory(), filename))
             if playerAvailable:
                 self.player.songList.append((a,))
@@ -3542,7 +3609,7 @@ class MerlinMusicPlayerFileList(Screen):
                 SongList.append((a,))
             if not playerAvailable:
                 if self.player is not None:
-                    self.player.doClose()
+                    self.session.deleteDialog(self.player)
                     self.player = None
                 self.player = self.session.instantiateDialog(MerlinMusicPlayerScreen, SongList, 0, False, self.currentService, self.serviceList)
                 self.player.playSong(self.player.songList[self.player.currentIndex][0].filename)
@@ -3556,7 +3623,9 @@ class MerlinMusicPlayerFileList(Screen):
         if self.player is not None and self.player.songList:
             index = self.player.currentIndex
             filename = self["list"].getFilename()
-            if filename.lower().endswith(".mp3") or filename.lower().endswith(".flac") or filename.lower().endswith(".m4a") or filename.lower().endswith(".ogg"):
+            SongList = []
+            if isValidAudio(filename):
+                SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
                 a = Item(text=filename, filename=os_path.join(self["list"].getCurrentDirectory(), filename))
                 self.player.songList.insert(index + 1, (a,))
                 self.player.origSongList.insert(index + 1, (a,))
@@ -3625,7 +3694,7 @@ class MerlinMusicPlayerFileList(Screen):
         self.startMerlinPlayerScreenTimer.stop()
         if self.player is not None:
             self.player.closePlayer()
-            self.player.doClose()
+            self.session.deleteDialog(self.player)
             self.player = None
         if self.serviceList is None:
             self.session.nav.playService(self.currentService, adjust=False)
