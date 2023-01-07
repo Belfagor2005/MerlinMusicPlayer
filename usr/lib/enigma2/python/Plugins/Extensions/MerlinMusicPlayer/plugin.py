@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# -*- coding: latin-1 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #  Merlin Music Player E2
 #
@@ -64,11 +64,11 @@ from Tools.LoadPixmap import LoadPixmap
 from datetime import timedelta as datetime_timedelta
 from enigma import RT_HALIGN_RIGHT, RT_HALIGN_CENTER
 from enigma import RT_VALIGN_CENTER, RT_HALIGN_LEFT
+from enigma import eEPGCache
 from enigma import eListbox
 from enigma import eListboxPythonMultiContent
 from enigma import ePicLoad
 from enigma import ePoint
-from enigma import eEPGCache
 from enigma import ePythonMessagePump
 from enigma import eServiceCenter, getBestPlayableServiceReference
 from enigma import eServiceReference, eTimer
@@ -85,18 +85,18 @@ from mutagen.oggvorbis import OggVorbis
 from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir
 from os import walk as os_walk, access as os_access, W_OK as os_W_OK
 from random import shuffle, randrange
-from six.moves.urllib.parse import quote, urlparse  # , urlunparse
+from six.moves.urllib.parse import quote, urlparse, urlunparse
 from sqlite3 import dbapi2 as sqlite
 from threading import Thread, Lock
 from time import time
-# from twisted.internet import defer
+from twisted.internet import defer
 from twisted.internet import reactor
 from twisted.web import client
 from twisted.web.client import HTTPClientFactory, downloadPage
 from xml.etree.cElementTree import fromstring as cet_fromstring
 import re
-import skin
 import six
+import skin
 try:
     from Plugins.SystemPlugins.PiPServiceRelation.plugin import getRelationDict  # , CONFIG_FILE
     plugin_PiPServiceRelation_installed = True
@@ -155,6 +155,7 @@ class ThreadQueue:
         ret = self.__list.pop()
         lock.release()
         return ret
+
 
 displayname = None
 THREAD_WORKING = 1
@@ -410,7 +411,8 @@ class CacheList:
 
 
 class Item:
-    def __init__(self, text="", mode=0, id=-1, navigator=False, artistID=0, albumID=0, title="", artist="", filename="", bitrate=None, length="", genre="", track="", date="", album="", playlistID=0, genreID=0, songID=0, join=True, PTS=None):
+    def __init__(self, text="", mode=0, id=-1, navigator=False, artistID=0, albumID=0, title="", artist="", filename="", bitrate=None, length="", genre="", track="", date="", album="", playlistID=0, genreID=0, songID=0, join=True, PTS=None, isDVB = False):
+
         self.text = text
         self.mode = mode
         self.navigator = navigator
@@ -427,8 +429,8 @@ class Item:
                 self.bitrate = bitrate
         else:
             self.bitrate = ""
-        # self.length = repr(length)[2:-1]
-        self.length = length
+        self.length = repr(length)[2:-1]
+        # self.length = length
         self.genre = genre
         if track is not None:
             self.track = _("Track %s") % track
@@ -474,38 +476,38 @@ def OpenDatabase():
     return connection
 
 
-# def getEncodedString(value):
-    # returnValue = ""
-    # if six.PY3:
-        # returnValue = value
-    # else:
-        # try:
-            # returnValue = value.encode("utf-8", 'ignore')
-        # except UnicodeDecodeError:
-            # try:
-                # returnValue = value.encode("iso8859-1", 'ignore')
-            # except UnicodeDecodeError:
-                # try:
-                    # returnValue = value.decode("cp1252").encode("utf-8")
-                # except UnicodeDecodeError:
-                    # returnValue = "n/a"
-    # return returnValue
 def getEncodedString(value):
     returnValue = ""
-    try:
-        returnValue = value.encode("utf-8", 'ignore')
-    except UnicodeDecodeError:
+    if six.PY3:
+        returnValue = value
+    else:
         try:
-            returnValue = value.encode("iso8859-1", 'ignore')
+            returnValue = value.encode("utf-8", 'ignore')
         except UnicodeDecodeError:
             try:
-                returnValue = value.decode("cp1252").encode("utf-8")
+                returnValue = value.encode("iso8859-1", 'ignore')
             except UnicodeDecodeError:
+                try:
+                    returnValue = value.decode("cp1252").encode("utf-8")
+                except UnicodeDecodeError:
+                    returnValue = "n/a"
+    return returnValue
+# def getEncodedString(value):
+    # returnValue = ""
+    # try:
+        # returnValue = value.encode("utf-8", 'ignore')
+    # except UnicodeDecodeError:
+        # try:
+            # returnValue = value.encode("iso8859-1", 'ignore')
+        # except UnicodeDecodeError:
+            # try:
+                # returnValue = value.decode("cp1252").encode("utf-8")
+            # except UnicodeDecodeError:
                     
-                returnValue = "n/a"
+                # returnValue = "n/a"
                                           
                                        
-    return returnValue
+    # return returnValue
 
 def getID3Tags(root, filename):
     audio = None
@@ -565,7 +567,7 @@ def getID3Tags(root, filename):
         date = getEncodedString(audio.get('date', ['n/a'])[0])
         try:
             length = str(datetime_timedelta(seconds=int(audio.info.length))).encode("utf-8", 'ignore')
-            # length = repr(length)[2:-1]
+            length = repr(length)[2:-1]
         except:
             length = -1
         if not isFlac:
@@ -643,12 +645,14 @@ class MerlinMusicPlayerScreenSaver(Screen):
         self["display"] = Label()
         self.onClose.append(self.__onClose)
         self.session.nav.SleepTimer.on_state_change.append(self.sleepTimerEntryOnStateChange)
+
     def sleepTimerEntryOnStateChange(self, timer):
         if timer.state == TimerEntry.StateEnded:
             self.close()
 
     def __onClose(self):
         self.session.nav.SleepTimer.on_state_change.remove(self.sleepTimerEntryOnStateChange)
+
     def updateDisplayText(self, text):
         self["display"].setText(text)
 
@@ -1751,8 +1755,8 @@ class MerlinMusicPlayerLyrics(Screen):
             self.skin = f.read()
         self["headertext"] = Label(_("Merlin Music Player Lyrics"))
         # leoslyrics does not work anymore
-        self["resulttext"] = Label(_("Getting lyrics from api.leoslyrics.com..."))
-        # self["resulttext"] = Label()
+        # self["resulttext"] = Label(_("Getting lyrics from api.leoslyrics.com..."))
+        # # self["resulttext"] = Label()
         self["lyric_text"] = ScrollLabel()
         self["actions"] = ActionMap(["WizardActions", "DirectionActions"],
                                     {
@@ -1772,15 +1776,17 @@ class MerlinMusicPlayerLyrics(Screen):
     def startRun(self):
         # get lyric-text from id3 tag
         try:
-            audio = ID3(self.currentSong.filename)
-            print('audio ID3 ', audio)
-        except:
-            audio = None
-        text = getEncodedString(self.getLyricsFromID3Tag(audio))  # .replace("\r\n", "\n")
-        # text = text.replace("\r", "\n")
-        print('audio text FromID3Tag ', text)
-        self["lyric_text"].setText(text)
-        self["resulttext"].setText('')
+            try:
+                audio = ID3(self.currentSong.filename)
+                print('audio ID3 ', audio)
+            except:
+                audio = None
+            text = getEncodedString(self.getLyricsFromID3Tag(audio))  # .replace("\r\n", "\n")
+            # text = text.replace("\r", "\n")
+            print('audio text FromID3Tag ', text)
+            self["lyric_text"].setText(text)
+        except Exception as e:
+            print(str(e))
 
     def getLyricsFromID3Tag(self, tag):
         if tag:
@@ -1788,10 +1794,12 @@ class MerlinMusicPlayerLyrics(Screen):
                 if frame.FrameID == "USLT":
                     print('type tag USLT')
                     return frame.text
-        url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=%s&song=%s" % (quote(self.currentSong.artist), quote(self.currentSong.title))
+        # url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" +  quote(self.currentSong.artist) + "&song=" + quote(self.currentSong.title)
+        # url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=%s&song=%s" % (quote(self.currentSong.artist), quote(self.currentSong.title))
+        url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" +  self.currentSong.artist + "&song=" +self.currentSong.title        
         # url1 = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" + quote(self.currentSong.artist)
         # url = url1 + '&song=' + quote(self.currentSong.title)
-        print('url final sendurlcommand = ', url)
+        print('url final sendurlcommand AAAAAA= ', url)
         # print('type url = ', type(url))
         import requests
         from requests.adapters import HTTPAdapter
@@ -1805,7 +1813,7 @@ class MerlinMusicPlayerLyrics(Screen):
             r.raise_for_status()
             if r.status_code == requests.codes.ok:
                 try:
-                    response = responseUrl(str(url))
+                    response = responseUrl(url)
                     print('url response = ', response)
                     self.gotLyrics(response)
                 except:
@@ -3076,6 +3084,7 @@ class MerlinMediaPixmap(Pixmap):
     # def screensaver(self, path):
         # self.picload.startDecode(path)
 
+
 class SelectPath(Screen):
     # skin = """<screen name="SelectPath" position="center,center" size="560,320" title="Select path">
             # <ePixmap pixmap="skin_default/buttons/red.png" position="0,0" zPosition="0" size="140,40" transparent="1" alphatest="on" />
@@ -3380,6 +3389,16 @@ class MerlinMusicPlayerFileList(Screen):
             SongList = []
             cursor.execute("select song_id, filename, title, artist, album, genre, bitrate, length,  track, date, PTS from CurrentSongList;")
             for row in cursor:
+                isDVB = False
+                if row[1].startswith("http://"):
+                    text = row[2]
+                    ref = eServiceReference(text)
+                    if ref.valid():
+                        info = serviceHandler.info(ref)
+                        text = info and info.getName(ref) or "."
+                        isDVB = True
+                else:
+                    text = os_path.basename(row[1])
                 SongList.append((Item(songID=row[0], text=os_path.basename(row[1]), filename=row[1], title=row[2], artist=row[3], album=row[4], genre=row[5], bitrate=row[6], length=row[7], track=row[8], date=row[9], PTS=row[10], join=False),))
                 if row[0] != 0:
                     iDreamMode = True
@@ -3476,7 +3495,7 @@ class MerlinMusicPlayerFileList(Screen):
                             info = serviceHandler.info(ref)
                             text = info and info.getName(ref) or "."
                         isDVB = True
-                    SongList.append((Item(text = text, filename = entry, isDVB = isDVB),))
+                    SongList.append((Item(text=text, filename=entry, isDVB=isDVB),))
                 elif entry[0] != "#":
                     if entry[0] == "/":
                         songfilename = entry
@@ -3553,7 +3572,8 @@ class MerlinMusicPlayerFileList(Screen):
                 files.sort()
                 for filename in files:
                     if isValidAudio(filename):
-                        SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
+                        # SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
+                        SongList.append((Item(text=filename, filename=os_path.join(self["list"].getCurrentDirectory(), filename)),))
                         if self["list"].getFilename() == filename:
                             foundIndex = index
                         index += 1
@@ -3600,7 +3620,7 @@ class MerlinMusicPlayerFileList(Screen):
         filename = self["list"].getFilename()
         if isValidAudio(filename):
             SongList = []
-            SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
+            # SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
             a = Item(text=filename, filename=os_path.join(self["list"].getCurrentDirectory(), filename))
             if playerAvailable:
                 self.player.songList.append((a,))
@@ -3623,9 +3643,9 @@ class MerlinMusicPlayerFileList(Screen):
         if self.player is not None and self.player.songList:
             index = self.player.currentIndex
             filename = self["list"].getFilename()
-            SongList = []
+            # SongList = []
             if isValidAudio(filename):
-                SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
+                # SongList.append((Item(text=filename, filename=os_path.join(root, filename)),))
                 a = Item(text=filename, filename=os_path.join(self["list"].getCurrentDirectory(), filename))
                 self.player.songList.insert(index + 1, (a,))
                 self.player.origSongList.insert(index + 1, (a,))
