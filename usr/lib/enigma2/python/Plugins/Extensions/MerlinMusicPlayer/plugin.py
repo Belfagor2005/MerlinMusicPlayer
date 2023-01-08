@@ -411,7 +411,7 @@ class CacheList:
 
 
 class Item:
-    def __init__(self, text="", mode=0, id=-1, navigator=False, artistID=0, albumID=0, title="", artist="", filename="", bitrate=None, length="", genre="", track="", date="", album="", playlistID=0, genreID=0, songID=0, join=True, PTS=None, isDVB = False):
+    def __init__(self, text="", mode=0, id=-1, navigator=False, artistID=0, albumID=0, title="", artist="", filename="", bitrate=None, length="", genre="", track="", date="", album="", playlistID=0, genreID=0, songID=0, join=True, PTS=None, isDVB=False):
 
         self.text = text
         self.mode = mode
@@ -421,7 +421,7 @@ class Item:
         self.title = title
         self.artist = artist
         self.filename = filename
-        self.isDVB = isDVB                  
+        self.isDVB = isDVB
         if bitrate is not None:
             if join:
                 self.bitrate = "%d Kbps" % bitrate
@@ -503,10 +503,10 @@ def getEncodedString(value):
             # try:
                 # returnValue = value.decode("cp1252").encode("utf-8")
             # except UnicodeDecodeError:
-                    
+
                 # returnValue = "n/a"
-                                          
-                                       
+
+
     # return returnValue
 
 def getID3Tags(root, filename):
@@ -545,7 +545,7 @@ def getID3Tags(root, filename):
             audio = None
     elif filename.lower().endswith(".aif") or filename.lower().endswith(".aiff"):
         try:
-            audio = AIFF(os_path.join(root,filename))
+            audio = AIFF(os_path.join(root, filename))
         except:
             audio = None
     else:
@@ -839,7 +839,7 @@ class MerlinMusicPlayerTV(MerlinMusicPlayerScreenSaver):
 
     def searchNumberHelper(self, serviceHandler, num, bouquet):
         servicelist = serviceHandler.list(bouquet)
-        if servicelist:
+        if servicelist is not None:
             serviceIterator = servicelist.getNext()
             while serviceIterator.valid():
                 if num == serviceIterator.getChannelNum():
@@ -1497,8 +1497,8 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
                 urls.pop(0)
                 print("[MerlinMusicPlayer] downloading cover from %s " % url)
                 # edit
-                if six.PY3:
-                    url = url.encode()
+                # if six.PY3:
+                    # url = url.encode()
                 downloadPage(six.ensure_binary(url), filename).addCallback(boundFunction(self.coverDownloadFinished, filename)).addErrback(boundFunction(self.coverDownloadFailed, urls, album, title))
 
     def coverDownloadFailed(self, urls, album, title, result):
@@ -1571,14 +1571,17 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
         if config.plugins.merlinmusicplayer.startlastsonglist.value:
             config.plugins.merlinmusicplayer.lastsonglistindex.value = -1
             config.plugins.merlinmusicplayer.lastsonglistindex.save()
-            connection = OpenDatabase()
-            if connection is not None:
-                connection.text_factory = str
-                cursor = connection.cursor()
-                cursor.execute("Delete from CurrentSongList;")
-                connection.commit()
-                cursor.close()
-                connection.close()
+            try: # so lame, but OperationalError: disk I/O error occurs too often
+                connection = OpenDatabase()
+                if connection is not None:
+                    connection.text_factory = str
+                    cursor = connection.cursor()
+                    cursor.execute("Delete from CurrentSongList;")
+                    connection.commit()
+                    cursor.close()
+                    connection.close()
+            except:
+                pass                   
         self.resetScreenSaverTimer()
         self.close()
 
@@ -1796,8 +1799,8 @@ class MerlinMusicPlayerLyrics(Screen):
                     return frame.text
         # url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" +  quote(self.currentSong.artist) + "&song=" + quote(self.currentSong.title)
         # url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=%s&song=%s" % (quote(self.currentSong.artist), quote(self.currentSong.title))
-        url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" +  self.currentSong.artist + "&song=" +self.currentSong.title        
-        # url1 = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" + quote(self.currentSong.artist)
+        url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=" +  self.currentSong.artist + "&song=" + self.currentSong.title
+        # url = "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist=%s&song=%s" % (quote(self.currentSong.artist), quote(self.currentSong.title))
         # url = url1 + '&song=' + quote(self.currentSong.title)
         print('url final sendurlcommand AAAAAA= ', url)
         # print('type url = ', type(url))
@@ -2245,7 +2248,7 @@ class iDreamMerlin(Screen):
         options = [(_("search for title"), 1),
                    (_("search for artist"), 2),
                    (_("search for album"), 3),
-                   (_("search in all of them"), 4), ]
+                   (_("search in all of them"), 4),]
         self.session.openWithCallback(self.enterSearchText, ChoiceBox, list=options)
 
     def enterSearchText(self, ret):
