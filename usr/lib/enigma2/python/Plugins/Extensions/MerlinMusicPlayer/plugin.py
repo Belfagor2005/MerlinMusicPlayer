@@ -3199,7 +3199,7 @@ class MerlinMusicPlayerLCDScreenText(Screen):
 
     def setText(self, text, line):
         textleer = "    "
-        text = text + textleer * 10
+        text = str(text) + (textleer * 10)
         if line == 1:
             self["text1"].setText(text)
         elif line == 3:
