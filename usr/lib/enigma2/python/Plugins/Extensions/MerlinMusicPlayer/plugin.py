@@ -3692,7 +3692,7 @@ class MerlinMusicPlayerFileList(Screen):
         sel = self["list"].list[index]
         text = sel[1][7]
         if sel[0][1] is True:
-            text = "/" + text
+            text = "/" + str(text)
         self.summaries.setText(text, 1)
         # voheriges
         index -= 1
@@ -3701,7 +3701,7 @@ class MerlinMusicPlayerFileList(Screen):
         sel = self["list"].list[index]
         text = sel[1][7]
         if sel[0][1] is True:
-            text = "/" + text
+            text = "/" + str(text)
         self.summaries.setText(text, 3)
         # naechstes
         index = self["list"].getSelectionIndex() + 1
@@ -3710,7 +3710,7 @@ class MerlinMusicPlayerFileList(Screen):
         sel = self["list"].list[index]
         text = sel[1][7]
         if sel[0][1] is True:
-            text = "/" + text
+            text = "/" + str(text)
         self.summaries.setText(text, 4)
 
     def __onClose(self):
