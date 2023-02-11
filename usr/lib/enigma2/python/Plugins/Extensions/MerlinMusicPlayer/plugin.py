@@ -1163,7 +1163,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
         self.repeat = False
         self.currentFilename = ""
         self.currentGoogleCoverFile = ""
-        self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "downloaded_covers/")
+        self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "/downloaded_covers/")
         if not os_path.exists(self.googleDownloadDir):
             try:
                 os_mkdir(self.googleDownloadDir)
@@ -1254,7 +1254,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
 
     def setupFinished(self, result):
         if result:
-            self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "downloaded_covers/")
+            self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "/downloaded_covers/")
             if not os_path.exists(self.googleDownloadDir):
                 try:
                     os_mkdir(self.googleDownloadDir)
