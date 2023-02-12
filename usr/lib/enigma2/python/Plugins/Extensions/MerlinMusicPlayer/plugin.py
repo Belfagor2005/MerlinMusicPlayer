@@ -292,7 +292,7 @@ class iDreamAddToDatabase(Screen):
         Screen.__init__(self, session)
         self.setTitle(_("Add music files to iDream database"))
 
-        skin = skin_path + 'iDreamAddToDatabase.xml'
+        skin = os.path.join(skin_path, 'iDreamAddToDatabase.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -616,7 +616,7 @@ class MerlinMusicPlayerScreenSaver(Screen):
         self.session = session
         Screen.__init__(self, session)
 
-        skin = skin_path + 'MerlinMusicPlayerScreenSaver.xml'
+        skin = os.path.join(skin_path, 'MerlinMusicPlayerScreenSaver.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -716,13 +716,13 @@ class MerlinMusicPlayerTV(MerlinMusicPlayerScreenSaver):
         if w == 1920:
             # cy = 606
             # edit lulu
-            skin = skin_path + 'MerlinMusicPlayerTV.xml'
+            skin = os.path.join(skin_path, 'MerlinMusicPlayerTV.xml')
             with open(skin, 'r') as f:
                 self.skin = f.read()
         elif w == 1280:
             # cy = 606
             # edit lulu
-            skin = skin_path + 'MerlinMusicPlayerTV.xml'
+            skin = os.path.join(skin_path, 'MerlinMusicPlayerTV.xml')
             with open(skin, 'r') as f:
                 self.skin = f.read()
         else:
@@ -1111,7 +1111,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
         self.session = session
         Screen.__init__(self, session)
 
-        skin = skin_path + 'MerlinMusicPlayerScreen.xml'
+        skin = os.path.join(skin_path, 'MerlinMusicPlayerScreen.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -1581,7 +1581,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
                     cursor.close()
                     connection.close()
             except:
-                pass                   
+                pass
         self.resetScreenSaverTimer()
         self.close()
 
@@ -1753,7 +1753,7 @@ class MerlinMusicPlayerLyrics(Screen):
         self.session = session
         Screen.__init__(self, session)
         self.setTitle(_("Lyrics"))
-        skin = skin_path + 'MerlinMusicPlayerLyrics.xml'
+        skin = os.path.join(skin_path, 'MerlinMusicPlayerLyrics.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
         self["headertext"] = Label(_("Merlin Music Player Lyrics"))
@@ -1899,7 +1899,7 @@ class MerlinMusicPlayerSongList(Screen):
         self.session = session
         Screen.__init__(self, session)
 
-        skin = skin_path + 'MerlinMusicPlayerSongList.xml'
+        skin = os.path.join(skin_path, 'MerlinMusicPlayerSongList.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -2012,7 +2012,7 @@ class iDreamMerlin(Screen):
         self.session = session
         Screen.__init__(self, session)
 
-        skin = skin_path + 'iDreamMerlin.xml'
+        skin = os.path.join(skin_path, 'iDreamMerlin.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -3103,7 +3103,7 @@ class SelectPath(Screen):
     def __init__(self, session, initDir):
         Screen.__init__(self, session)
 
-        skin = skin_path + 'SelectPath.xml'
+        skin = os.path.join(skin_path, 'SelectPath.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -3244,7 +3244,7 @@ class MerlinMusicPlayerSetup(Screen, ConfigListScreen):
         Screen.__init__(self, session)
         self.setTitle(_("Merlin Music Player Setup"))
 
-        skin = skin_path + 'MerlinMusicPlayerSetup.xml'
+        skin = os.path.join(skin_path, 'MerlinMusicPlayerSetup.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
@@ -3345,7 +3345,7 @@ class MerlinMusicPlayerFileList(Screen):
         self.session = session
         Screen.__init__(self, session)
 
-        skin = skin_path + 'MerlinMusicPlayerFileList.xml'
+        skin = os.path.join(skin_path, 'MerlinMusicPlayerFileList.xml')
         with open(skin, 'r') as f:
             self.skin = f.read()
 
