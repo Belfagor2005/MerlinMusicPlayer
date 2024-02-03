@@ -333,30 +333,37 @@ class myHTTPClientFactory(HTTPClientFactory):
     def __init__(self, url, method='GET', postdata=None, headers=None,
                  agent="SHOUTcast", timeout=0, cookies=None,
                  followRedirect=1, lastModified=None, etag=None):
+        if type(url) is str:
+            url = bytes(url, 'utf-8')
+        if type(method) is str:
+            method = bytes(method, 'utf-8')
         HTTPClientFactory.__init__(self, url, method=method, postdata=postdata,
                                    headers=headers, agent=agent, timeout=timeout, cookies=cookies, followRedirect=followRedirect)
 
 
 def sendUrlCommand(url, contextFactory=None, timeout=60, *args, **kwargs):
-    # edit
-    if six.PY3:
-        url = url.encode()
-    # end edit
-    if hasattr(client, '_parse'):
-        scheme, host, port, path = client._parse(url)
-    else:
-        # _URI class renamed to URI in 15.0.0
-        try:
-            from twisted.web.client import _URI as URI
-        except ImportError:
-            from twisted.web.client import URI
-        uri = URI.fromBytes(url)
-        # uri = url
-        scheme = uri.scheme
-        host = uri.host
-        port = uri.port
-        path = uri.path
-
+    # # edit
+    # if six.PY3:
+        # url = url.encode()
+    # # end edit
+    # if hasattr(client, '_parse'):
+        # scheme, host, port, path = client._parse(url)
+    # else:
+        # # _URI class renamed to URI in 15.0.0
+        # try:
+            # from twisted.web.client import _URI as URI
+        # except ImportError:
+            # from twisted.web.client import URI
+        # uri = URI.fromBytes(url)
+        # # uri = url
+        # scheme = uri.scheme
+        # host = uri.host
+        # port = uri.port
+        # path = uri.path
+    parsed = urlparse(url)
+    scheme = parsed.scheme
+    host = parsed.hostname
+    port = parsed.port or (443 if scheme == 'https' else 80)
     factory = myHTTPClientFactory(url, *args, **kwargs)
     reactor.connectTCP(host, port, factory, timeout=timeout)
     return factory.deferred
@@ -1163,7 +1170,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
         self.repeat = False
         self.currentFilename = ""
         self.currentGoogleCoverFile = ""
-        self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "/downloaded_covers/")
+        self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "downloaded_covers/")
         if not os_path.exists(self.googleDownloadDir):
             try:
                 os_mkdir(self.googleDownloadDir)
@@ -1254,7 +1261,7 @@ class MerlinMusicPlayerScreen(Screen, InfoBarBase, InfoBarSeek, InfoBarNotificat
 
     def setupFinished(self, result):
         if result:
-            self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "/downloaded_covers/")
+            self.googleDownloadDir = os_path.join(config.plugins.merlinmusicplayer.googleimagepath.value, "downloaded_covers/")
             if not os_path.exists(self.googleDownloadDir):
                 try:
                     os_mkdir(self.googleDownloadDir)
@@ -2248,7 +2255,7 @@ class iDreamMerlin(Screen):
         options = [(_("search for title"), 1),
                    (_("search for artist"), 2),
                    (_("search for album"), 3),
-                   (_("search in all of them"), 4),]
+                   (_("search in all of them"), 4), ]
         self.session.openWithCallback(self.enterSearchText, ChoiceBox, list=options)
 
     def enterSearchText(self, ret):
