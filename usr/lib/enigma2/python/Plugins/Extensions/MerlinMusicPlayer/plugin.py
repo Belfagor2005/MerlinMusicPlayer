@@ -84,6 +84,7 @@ from mutagen.mp3 import MP3
 from mutagen.oggvorbis import OggVorbis
 from os import path as os_path, mkdir as os_mkdir, listdir as os_listdir
 from os import walk as os_walk, access as os_access, W_OK as os_W_OK
+import os
 from random import shuffle, randrange
 from six.moves.urllib.parse import quote, urlparse, urlunparse
 from sqlite3 import dbapi2 as sqlite
